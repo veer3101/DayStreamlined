@@ -823,7 +823,7 @@
   <!-- ===================== FLOATING: THEME SWITCHER (bottom-right) ===================== -->
   <button class="float-btn glass-strong" style="right:20px; bottom:20px;" @click="toggleThemeSwitcher" aria-label="Change theme" v-html="icon('palette','w-5 h-5')"></button>
   <transition name="popup">
-    <div v-if="showThemeSwitcher" class="float-popup glass-strong rounded-3xl p-4 w-72" style="right:20px; bottom:84px;">
+    <div v-if="showThemeSwitcher" class="float-popup glass-strong rounded-3xl p-4 w-72 overflow-y-auto" style="right:20px; bottom:84px; max-height:calc(100vh - 110px);">
       <div class="flex items-center justify-between mb-3 px-1">
         <span class="text-xs font-bold uppercase tracking-widest" style="color:var(--text-primary)">Scene</span>
         <button @click="showThemeSwitcher=false" class="icon-btn !w-7 !h-7" v-html="icon('x','w-3.5 h-3.5')"></button>
@@ -871,6 +871,65 @@
             </div>
           </transition>
         </div>
+      </div>
+
+      <!-- NEW: Custom Wallpapers -->
+      <div class="pt-3 pb-2 border-t" :style="{borderColor:'var(--glass-border)'}">
+        <div class="flex items-center justify-between px-1 mb-2.5">
+          <span class="text-[0.65rem] font-bold uppercase tracking-widest" style="color:var(--text-primary)">Custom Wallpapers</span>
+          <span class="text-[0.65rem] font-mono" style="color:var(--text-tertiary)">{{ customWallpapers.length }}/{{ MAX_CUSTOM_WP }}</span>
+        </div>
+        <div class="flex flex-wrap gap-2.5 px-1">
+          <button v-for="w in customWallpapers" :key="w.id" @click="setCustomWallpaper(w.id)"
+                  class="theme-swatch" :class="{selected: themeKey==='custom' && themeSettings.custom.activeId===w.id}"
+                  :style="{ backgroundImage: wpUrls[w.id] ? 'url(' + wpUrls[w.id] + ')' : 'none', backgroundColor: w.accent }"
+                  title="Use this wallpaper"></button>
+          <button v-if="customWallpapers.length < MAX_CUSTOM_WP" @click="triggerWpUpload" :disabled="wpBusy"
+                  class="theme-swatch btn-ghost flex items-center justify-center" style="border-style:dashed;"
+                  :title="wpBusy ? 'Processing…' : 'Upload wallpaper'" aria-label="Upload wallpaper"
+                  v-html="icon(wpBusy ? 'clock' : 'plus','w-4 h-4')"></button>
+        </div>
+        <input ref="wpInput" type="file" accept="image/*" class="hidden" @change="onWpFileChosen" />
+        <p v-if="wpError" class="text-[0.65rem] px-1 mt-2" style="color:var(--accent)">{{ wpError }}</p>
+        <p v-else-if="customWallpapers.length === 0" class="text-[0.65rem] px-1 mt-2" style="color:var(--text-tertiary)">Upload an image — the accent colour adapts to it automatically.</p>
+
+        <template v-if="themeKey==='custom' && activeCustomWp">
+          <button @click="customizeOpenFor = (customizeOpenFor==='custom' ? null : 'custom')"
+                  class="w-full flex items-center justify-between px-2 pt-2.5 pb-1 text-[0.65rem] font-semibold" style="color:var(--text-tertiary)">
+            <span class="flex items-center gap-1.5"><span v-html="icon('settings','w-3 h-3')"></span>Customize</span>
+            <span v-html="icon(customizeOpenFor==='custom' ? 'chevronUp' : 'chevronDown','w-3 h-3')"></span>
+          </button>
+          <transition name="fade">
+            <div v-if="customizeOpenFor==='custom'" class="px-2 pb-1 pt-1 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-[0.7rem]" style="color:var(--text-secondary)">{{ activeCustomWp.dark ? 'Dark mode' : 'Bright mode' }}</span>
+                <button @click="toggleCustomDark" class="toggle-track" :style="{ background: activeCustomWp.dark ? 'var(--accent)' : 'var(--glass-border)' }">
+                  <div class="toggle-knob" :style="{ left: activeCustomWp.dark ? '19px' : '3px' }"></div>
+                </button>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-[0.7rem]" style="color:var(--text-secondary)">Show wallpaper</span>
+                <button @click="toggleThemeWallpaper('custom')" class="toggle-track" :style="{ background: themeSettings.custom.wallpaper ? 'var(--accent)' : 'var(--glass-border)' }">
+                  <div class="toggle-knob" :style="{ left: themeSettings.custom.wallpaper ? '19px' : '3px' }"></div>
+                </button>
+              </div>
+              <div>
+                <span class="text-[0.7rem] block mb-2" style="color:var(--text-secondary)">Accent colour</span>
+                <div class="flex flex-wrap gap-2">
+                  <button @click="setCustomAccent(null)" class="colour-swatch flex items-center justify-center text-[0.5rem] font-bold"
+                          :class="{selected: activeCustomWp.accent === activeCustomWp.autoAccent}"
+                          :style="{ background: activeCustomWp.autoAccent, color:'#0a0b0d' }" title="Auto (from wallpaper)">A</button>
+                  <button v-for="c in blackAccentOptions" :key="c.value" @click="setCustomAccent(c.value)"
+                          class="colour-swatch" :class="{selected: activeCustomWp.accent === c.value && activeCustomWp.accent !== activeCustomWp.autoAccent}"
+                          :style="{ background: c.value }" :title="c.name"></button>
+                </div>
+              </div>
+              <button @click="deleteCustomWallpaper(activeCustomWp.id)" class="btn-ghost w-full rounded-lg py-1.5 text-[0.7rem] flex items-center justify-center gap-1.5">
+                <span v-html="icon('x','w-3 h-3')"></span>Remove this wallpaper
+              </button>
+            </div>
+          </transition>
+        </template>
       </div>
 
       <!-- NEW: My Motivational Quotes entry -->
@@ -937,6 +996,83 @@ const BLACK_ACCENTS = [
   { name: 'Mustard',      value: '#c9952c' },
 ];
 
+// ===================== NEW: CUSTOM WALLPAPER HELPERS =====================
+// Images are stored in IndexedDB (browser-only, never uploaded anywhere).
+const MAX_CUSTOM_WP = 5;
+const WP_DB = 'daydone_wallpapers', WP_STORE = 'images';
+function wpDb(){
+  return new Promise((res, rej) => {
+    const r = indexedDB.open(WP_DB, 1);
+    r.onupgradeneeded = () => r.result.createObjectStore(WP_STORE);
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+function wpTx(mode, fn){
+  return wpDb().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(WP_STORE, mode);
+    const req = fn(tx.objectStore(WP_STORE));
+    tx.oncomplete = () => res(req ? req.result : undefined);
+    tx.onerror = () => rej(tx.error);
+  }));
+}
+const wpPut = (id, blob) => wpTx('readwrite', st => st.put(blob, id));
+const wpGet = (id) => wpTx('readonly', st => st.get(id));
+const wpDelete = (id) => wpTx('readwrite', st => st.delete(id));
+
+function rgbToHsl(r, g, b){
+  r/=255; g/=255; b/=255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b); const l = (max+min)/2;
+  if(max === min) return [0, 0, l];
+  const d = max - min; const s = l > 0.5 ? d/(2-max-min) : d/(max+min);
+  let h = max === r ? (g-b)/d + (g<b ? 6 : 0) : max === g ? (b-r)/d + 2 : (r-g)/d + 4;
+  return [h/6, s, l];
+}
+function hslToHex(h, s, l){
+  const f = n => { const k = (n + h*12) % 12; const a = s * Math.min(l, 1-l);
+    return Math.round(255 * (l - a * Math.max(-1, Math.min(k-3, 9-k, 1)))).toString(16).padStart(2,'0'); };
+  return '#' + f(0) + f(8) + f(4);
+}
+function mixHex(a, b, t){
+  const pa = [1,3,5].map(i => parseInt(a.slice(i,i+2),16)), pb = [1,3,5].map(i => parseInt(b.slice(i,i+2),16));
+  return '#' + pa.map((v,i) => Math.round(v + (pb[i]-v)*t).toString(16).padStart(2,'0')).join('');
+}
+// Picks the dominant vivid colour + overall brightness of an image
+function analyseImage(source){
+  const S = 48, c = document.createElement('canvas'); c.width = S; c.height = S;
+  const ctx = c.getContext('2d'); ctx.drawImage(source, 0, 0, S, S);
+  const d = ctx.getImageData(0, 0, S, S).data;
+  const bins = Array.from({length: 36}, () => ({ w:0, h:0, s:0, l:0 }));
+  let lum = 0, n = 0;
+  for(let i = 0; i < d.length; i += 4){
+    if(d[i+3] < 128) continue;
+    n++; lum += (0.2126*d[i] + 0.7152*d[i+1] + 0.0722*d[i+2]) / 255;
+    const [h, s, l] = rgbToHsl(d[i], d[i+1], d[i+2]);
+    if(s < 0.22 || l < 0.12 || l > 0.9) continue;
+    const w = s * s * (1 - Math.abs(l - 0.5));
+    const b = bins[Math.floor(h * 36) % 36]; b.w += w; b.h += h*w; b.s += s*w; b.l += l*w;
+  }
+  let best = -1, bestScore = 0;
+  bins.forEach((b, k) => {
+    const score = b.w + 0.5 * (bins[(k+35)%36].w + bins[(k+1)%36].w);
+    if(score > bestScore){ bestScore = score; best = k; }
+  });
+  let accent = '#c9952c';
+  if(best > -1 && bins[best].w > 0.5){
+    const b = bins[best];
+    accent = hslToHex(b.h/b.w, Math.max(0.45, Math.min(0.85, b.s/b.w)), Math.max(0.5, Math.min(0.68, b.l/b.w)));
+  }
+  return { accent, isLight: n ? (lum / n) > 0.55 : false };
+}
+// Palettes for the custom scene, generated from its accent
+function buildCustomVariant(hex, dark){
+  const rgb = [1,3,5].map(i => parseInt(hex.slice(i,i+2),16)).join(',');
+  if(dark) return { bg:'linear-gradient(160deg,' + mixHex(hex,'#000000',0.86) + ' 0%,' + mixHex(hex,'#000000',0.72) + ' 50%,' + mixHex(hex,'#000000',0.9) + ' 100%)',
+    text:'#f3f1ee', textSec:'rgba(243,241,238,0.64)', textTer:'rgba(243,241,238,0.42)', glass:'rgba(18,18,22,0.45)', glassStrong:'rgba(18,18,22,0.72)', glassBorder:'rgba(' + rgb + ',0.32)', isLight:false };
+  return { bg:'linear-gradient(160deg,' + mixHex(hex,'#ffffff',0.88) + ' 0%,' + mixHex(hex,'#ffffff',0.78) + ' 50%,' + mixHex(hex,'#ffffff',0.92) + ' 100%)',
+    text:'#2b2b30', textSec:'rgba(43,43,48,0.64)', textTer:'rgba(43,43,48,0.42)', glass:'rgba(255,255,255,0.5)', glassStrong:'rgba(255,255,255,0.75)', glassBorder:'rgba(' + rgb + ',0.35)', isLight:true };
+}
+
 const ICONS = {
   calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
   sliders: '<line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="18" r="2"/>',
@@ -989,6 +1125,7 @@ createApp({
         seoul:    { dark: false, wallpaper: true },
         paris:    { dark: false, wallpaper: true },
         black:    { dark: false, wallpaper: false, accent: '#ffffff' },
+        custom:   { dark: false, wallpaper: true, activeId: null },
       },
       customizeOpenFor: null,
 
@@ -1075,6 +1212,13 @@ createApp({
       editTime: '',
 
       showThemeSwitcher: false,
+
+      // NEW: custom wallpapers ({ id, accent, autoAccent, dark })
+      MAX_CUSTOM_WP,
+      customWallpapers: [],
+      wpUrls: {},
+      wpBusy: false,
+      wpError: '',
     }
   },
 
@@ -1165,7 +1309,9 @@ createApp({
       return avg % 1 === 0 ? avg.toString() : avg.toFixed(1);
     },
 
+    activeCustomWp(){ return this.customWallpapers.find(w => w.id === this.themeSettings.custom.activeId) || null; },
     currentThemeWallpaperUrl(){
+      if(this.themeKey === 'custom') return this.activeCustomWp ? (this.wpUrls[this.activeCustomWp.id] || null) : null;
       const t = THEMES[this.themeKey];
       return t ? t.wallpaper : null;
     },
@@ -1216,11 +1362,18 @@ createApp({
     },
     applyTheme(){
       const key = this.themeKey;
-      const t = THEMES[key];
-      if(!t) return;
-      const settings = this.themeSettings[key];
-      const variant = settings.dark ? t.bright : t.dark;
-      const accentHex = (key === 'black') ? (settings.accent || '#ffffff') : t.accent;
+      let variant, accentHex;
+      if(key === 'custom'){
+        const w = this.activeCustomWp;
+        if(!w){ this.themeKey = 'academia'; return this.applyTheme(); }
+        accentHex = w.accent; variant = buildCustomVariant(w.accent, w.dark);
+      } else {
+        const t = THEMES[key];
+        if(!t) return;
+        const settings = this.themeSettings[key];
+        variant = settings.dark ? t.bright : t.dark;
+        accentHex = (key === 'black') ? (settings.accent || '#ffffff') : t.accent;
+      }
       const root = document.documentElement;
       const rgb = this.hexToRgb(accentHex);
       root.style.setProperty('--accent', accentHex);
@@ -1261,6 +1414,76 @@ createApp({
     toggleThemeSwitcher(){
       this.showThemeSwitcher = !this.showThemeSwitcher;
       if(!this.showThemeSwitcher) this.customizeOpenFor = null;
+    },
+
+    // ===================== NEW: CUSTOM WALLPAPERS =====================
+    triggerWpUpload(){ this.wpError = ''; if(this.$refs.wpInput) this.$refs.wpInput.click(); },
+    async onWpFileChosen(e){
+      const file = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if(!file) return;
+      if(!file.type.startsWith('image/')){ this.wpError = 'Please choose an image file.'; return; }
+      if(this.customWallpapers.length >= MAX_CUSTOM_WP){ this.wpError = 'Limit reached — remove one first.'; return; }
+      this.wpBusy = true; this.wpError = '';
+      try{
+        const img = await new Promise((res, rej) => {
+          const url = URL.createObjectURL(file); const im = new Image();
+          im.onload = () => { URL.revokeObjectURL(url); res(im); };
+          im.onerror = () => { URL.revokeObjectURL(url); rej(new Error('load')); };
+          im.src = url;
+        });
+        // Resize to max 1920px to save storage
+        const scale = Math.min(1, 1920 / Math.max(img.naturalWidth, img.naturalHeight));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.naturalWidth * scale); c.height = Math.round(img.naturalHeight * scale);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        const blob = await new Promise(res => c.toBlob(res, 'image/jpeg', 0.85));
+        if(!blob) throw new Error('encode');
+        const { accent, isLight } = analyseImage(c);
+        const id = 'wp_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+        await wpPut(id, blob);
+        this.wpUrls[id] = URL.createObjectURL(blob);
+        this.customWallpapers.push({ id, accent, autoAccent: accent, dark: !isLight });
+        this.setCustomWallpaper(id);
+      }catch(err){
+        this.wpError = "Couldn't save that image. Try another, or check your browser isn't in private mode.";
+      }finally{ this.wpBusy = false; }
+    },
+    setCustomWallpaper(id){
+      this.themeSettings.custom.activeId = id;
+      this.themeKey = 'custom';
+      this.customizeOpenFor = null;
+      this.applyTheme();
+      this.persist();
+    },
+    toggleCustomDark(){
+      const w = this.activeCustomWp; if(!w) return;
+      w.dark = !w.dark; this.applyTheme(); this.persist();
+    },
+    setCustomAccent(hex){
+      const w = this.activeCustomWp; if(!w) return;
+      w.accent = hex || w.autoAccent; this.applyTheme(); this.persist();
+    },
+    async deleteCustomWallpaper(id){
+      if(!window.confirm('Remove this wallpaper? This cannot be undone.')) return;
+      try{ await wpDelete(id); }catch(e){}
+      if(this.wpUrls[id]){ URL.revokeObjectURL(this.wpUrls[id]); delete this.wpUrls[id]; }
+      this.customWallpapers = this.customWallpapers.filter(w => w.id !== id);
+      if(this.themeSettings.custom.activeId === id){
+        this.themeSettings.custom.activeId = null;
+        if(this.themeKey === 'custom') this.setTheme('academia');
+      }
+      this.persist();
+    },
+    async loadCustomWallpaperImages(){
+      for(const w of [...this.customWallpapers]){
+        try{
+          const blob = await wpGet(w.id);
+          if(blob) this.wpUrls[w.id] = URL.createObjectURL(blob);
+          else this.customWallpapers = this.customWallpapers.filter(x => x.id !== w.id);
+        }catch(e){}
+      }
+      if(this.themeKey === 'custom' && !this.activeCustomWp){ this.themeKey = 'academia'; this.applyTheme(); this.persist(); }
     },
 
     // ===================== GREETING / QUOTES =====================
@@ -1590,6 +1813,7 @@ createApp({
         totalPomodoros: this.totalPomodoros, pomodorosThisCycle: this.pomodorosThisCycle,
         sessionLog: this.sessionLog, tasks: this.tasks, mode: this.mode,
         roundsPerCycle: this.roundsPerCycle, showDefaultQuotes: this.showDefaultQuotes, customQuotes: this.customQuotes,
+        customWallpapers: this.customWallpapers,
       };
       try{ localStorage.setItem('daydone_state_v3', JSON.stringify(payload)); }
       catch(e){ this._memoryStore = payload; }
@@ -1599,7 +1823,8 @@ createApp({
       try{ const raw = localStorage.getItem('daydone_state_v3'); if(raw) data = JSON.parse(raw); }
       catch(e){ data = this._memoryStore || null; }
       if(!data) return;
-      if(typeof data.themeKey === 'string' && THEMES[data.themeKey]) this.themeKey = data.themeKey;
+      if(typeof data.themeKey === 'string' && (THEMES[data.themeKey] || data.themeKey === 'custom')) this.themeKey = data.themeKey;
+      if(Array.isArray(data.customWallpapers)) this.customWallpapers = data.customWallpapers.filter(w => w && w.id && w.accent).slice(0, MAX_CUSTOM_WP);
       if(data.themeSettings){
         Object.keys(this.themeSettings).forEach(k => {
           if(data.themeSettings[k]) this.themeSettings[k] = Object.assign({}, this.themeSettings[k], data.themeSettings[k]);
@@ -1625,6 +1850,7 @@ createApp({
 
   mounted(){
     this.applyTheme();
+    this.loadCustomWallpaperImages();
     this.secondsLeft = this.durations[this.mode] * 60;
 
     this.rotateQuote();
