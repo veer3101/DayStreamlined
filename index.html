@@ -199,7 +199,7 @@
   }
   .task-strike.is-done::after{ width: 100%; }
 
-  .tally-dot{ width:9px; height:9px; border-radius:9999px; border:1.5px solid var(--glass-border); transition: all .4s ease; }
+  .tally-dot{ width:clamp(9px, 0.7vw, 12px); height:clamp(9px, 0.7vw, 12px); border-radius:9999px; border:1.5px solid var(--glass-border); transition: all .4s ease; }
   .tally-dot.filled{ background: var(--accent); border-color: var(--accent); }
 
   @keyframes checkPop{ 0%{ transform: scale(1); } 35%{ transform: scale(1.3); } 100%{ transform: scale(1); } }
@@ -275,6 +275,13 @@
   .wheel-unit{ font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-tertiary); margin-top: 4px; }
   .wheel-sep{ font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 700; color: var(--text-tertiary); align-self: center; margin-top: -14px; }
 
+  /* ===== NEW: timer + tasks scale with the screen (width AND height), so zoom levels behave ===== */
+  .timer-ring{ width: clamp(15rem, min(28vw, 42vh), 28rem); max-width: 100%; aspect-ratio: 1 / 1; container-type: inline-size; }
+  .timer-time{ font-size: 23cqw; line-height: 1; }
+  .timer-time.long{ font-size: 15.5cqw; }
+  .timer-status{ font-size: clamp(0.65rem, 4cqw, 0.95rem); }
+  .task-scroll{ max-height: clamp(260px, 52vh, 640px); }
+
   /* ===== NEW: Header menu ===== */
   .menu-btn svg{ transition: transform .4s cubic-bezier(.22,1,.36,1); }
   .menu-btn.open{ color: var(--accent); background: var(--accent-soft); }
@@ -334,7 +341,7 @@
 
     <!-- ===================== HEADER ===================== -->
     <header class="sticky top-0 z-30 glass border-b" :style="{borderColor:'var(--glass-border)'}">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+      <div class="w-full px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
         <div class="flex items-center min-w-0">
           <div class="min-w-0 leading-tight">
             <div class="font-display font-extrabold text-xl sm:text-2xl tracking-tight truncate accent-transition" style="color:var(--text-primary)">Day Streamlined</div>
@@ -354,17 +361,17 @@
     </header>
 
     <!-- ===================== MAIN ===================== -->
-    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-10">
+    <main class="flex-1 max-w-[96rem] w-full mx-auto px-4 sm:px-6 xl:px-10 py-5 sm:py-6">
 
-      <div class="text-center mb-6 h-10 flex items-center justify-center">
+      <div class="text-center mb-3 h-10 flex items-center justify-center">
         <transition name="fade" mode="out-in">
-          <p :key="currentQuote || greeting" class="text-sm sm:text-[0.95rem] font-medium tracking-wide" style="color:var(--text-secondary)">
+          <p :key="currentQuote || greeting" class="text-sm sm:text-[0.95rem] xl:text-base font-medium tracking-wide" style="color:var(--text-secondary)">
             {{ greeting }}<template v-if="currentQuote"> <span style="color:var(--text-tertiary)">·</span> {{ currentQuote }}</template>
           </p>
         </transition>
       </div>
 
-      <div class="flex justify-center mb-8">
+      <div class="flex justify-center mb-5">
         <div class="glass rounded-2xl p-1 flex gap-1 relative">
           <div class="absolute top-1 bottom-1 rounded-xl mode-pill accent-transition" :style="modePillStyle"></div>
           <button v-for="(m, idx) in modes" :key="m.key"
@@ -379,7 +386,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 xl:gap-8 items-start">
 
         <!-- ---------- Timer Card ---------- -->
         <div class="lg:col-span-2 glass rounded-3xl p-6 sm:p-8 flex flex-col items-center fade-slide-in relative">
@@ -387,21 +394,21 @@
           <!-- NEW: fullscreen button -->
           <button @click="enterFullscreen" class="icon-btn !w-9 !h-9 absolute top-4 right-4" title="Fullscreen timer" aria-label="Fullscreen timer" v-html="icon('maximize','w-4 h-4')"></button>
 
-          <div class="text-xs font-semibold uppercase tracking-[0.2em] mb-1 accent-transition" style="color:var(--accent)">{{ modeLabel }}</div>
-          <div class="text-[0.7rem] mb-6 text-center" style="color:var(--text-tertiary)">
+          <div class="text-xs xl:text-sm font-semibold uppercase tracking-[0.2em] mb-1 accent-transition" style="color:var(--accent)">{{ modeLabel }}</div>
+          <div class="text-[0.7rem] xl:text-sm mb-6 text-center" style="color:var(--text-tertiary)">
             Round {{ currentRound }} of {{ roundsPerCycle }}
             <span v-if="mode==='pomodoro' && priorityTask"> · {{ priorityTask.text }}</span>
           </div>
 
-          <div class="relative w-60 h-60 sm:w-64 sm:h-64 mb-6">
+          <div class="relative timer-ring mb-6">
             <svg viewBox="0 0 220 220" class="w-full h-full -rotate-90">
               <circle cx="110" cy="110" r="100" fill="none" stroke-width="10" class="progress-ring-track"/>
               <circle cx="110" cy="110" r="100" fill="none" stroke-width="10" stroke-linecap="round"
                       class="progress-ring-active" :stroke-dasharray="ringCircumference" :stroke-dashoffset="ringOffset"/>
             </svg>
             <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <div class="font-mono font-bold tabular-nums tracking-tight" :class="showHours ? 'text-[2.35rem] sm:text-[2.6rem]' : 'text-5xl sm:text-6xl'">{{ timeDisplay }}</div>
-              <div class="text-[0.65rem] mt-2 font-medium" style="color:var(--text-tertiary)">{{ timerStatusText }}</div>
+              <div class="font-mono font-bold tabular-nums tracking-tight timer-time" :class="{ long: showHours }">{{ timeDisplay }}</div>
+              <div class="timer-status mt-2 font-medium" style="color:var(--text-tertiary)">{{ timerStatusText }}</div>
             </div>
           </div>
 
@@ -409,25 +416,25 @@
             <span v-for="i in roundsPerCycle" :key="i" class="tally-dot" :class="{filled: i <= pomodorosThisCycle}"></span>
           </div>
 
-          <div class="flex items-center gap-3">
-            <button @click="resetTimer" class="icon-btn btn-ghost rounded-full" title="Reset" aria-label="Reset timer" v-html="icon('rotateCcw','w-4 h-4')"></button>
+          <div class="flex items-center gap-3 xl:gap-4">
+            <button @click="resetTimer" class="icon-btn btn-ghost rounded-full xl:!w-12 xl:!h-12" title="Reset" aria-label="Reset timer" v-html="icon('rotateCcw','w-4 h-4')"></button>
             <button @click="toggleTimer"
-                    class="btn-accent w-16 h-16 rounded-full flex items-center justify-center accent-glow-shadow"
+                    class="btn-accent w-16 h-16 xl:w-20 xl:h-20 rounded-full flex items-center justify-center accent-glow-shadow"
                     :class="{ 'running-pulse': isRunning }"
                     :aria-label="isRunning ? 'Pause timer' : 'Start timer'"
                     v-html="icon(isRunning ? 'pause' : 'play', 'w-7 h-7' + (!isRunning ? ' ml-0.5' : ''))"></button>
-            <button @click="skipTimer" class="icon-btn btn-ghost rounded-full" title="Skip" aria-label="Skip to next" v-html="icon('skipForward','w-4 h-4')"></button>
+            <button @click="skipTimer" class="icon-btn btn-ghost rounded-full xl:!w-12 xl:!h-12" title="Skip" aria-label="Skip to next" v-html="icon('skipForward','w-4 h-4')"></button>
           </div>
         </div>
 
         <!-- ---------- Right panel: Tasks (Pomodoro) OR Break message (Break modes) ---------- -->
         <div class="lg:col-span-3">
 
-          <div v-if="mode === 'pomodoro'" class="glass rounded-3xl p-5 sm:p-7 fade-slide-in">
+          <div v-if="mode === 'pomodoro'" class="glass rounded-3xl p-5 sm:p-7 xl:p-9 fade-slide-in">
             <div class="flex items-center justify-between mb-1">
               <button @click="tasksExpanded = !tasksExpanded" class="flex items-center gap-2 group">
                 <span v-html="icon('listChecks','w-[18px] h-[18px]')" style="color:var(--accent)"></span>
-                <h2 class="font-display font-bold text-lg tracking-wide">Tasks</h2>
+                <h2 class="font-display font-bold text-lg xl:text-xl tracking-wide">Tasks</h2>
                 <span v-html="icon(tasksExpanded ? 'chevronUp' : 'chevronDown','w-4 h-4')" style="color:var(--text-tertiary)"></span>
               </button>
               <span class="text-xs font-medium" style="color:var(--text-tertiary)">{{ completedTodayCount }}/{{ todayTasks.length }} done</span>
@@ -446,17 +453,17 @@
 
               <form @submit.prevent="addTask" class="space-y-2 mb-4">
                 <input v-model="newTaskText" type="text" placeholder="Task description…" maxlength="140"
-                       class="w-full glass-strong rounded-xl px-4 py-2.5 text-sm outline-none placeholder:opacity-50"
+                       class="w-full glass-strong rounded-xl px-4 py-2.5 xl:py-3 text-sm xl:text-base outline-none placeholder:opacity-50"
                        :style="{ color: 'var(--text-primary)' }" @keydown.enter.prevent="addTask" />
                 <div class="flex gap-2">
                   <input v-model="newTaskTime" type="text" placeholder="Time (e.g. 5:30 PM – 6:30 PM)"
-                         class="flex-1 glass-strong rounded-xl px-4 py-2.5 text-xs font-mono outline-none placeholder:opacity-50"
+                         class="flex-1 glass-strong rounded-xl px-4 py-2.5 xl:py-3 text-xs xl:text-sm font-mono outline-none placeholder:opacity-50"
                          :style="{ color: 'var(--text-primary)' }" @keydown.enter.prevent="addTask" />
                   <button type="submit" class="btn-accent rounded-xl px-4 flex items-center justify-center shrink-0" aria-label="Add task" v-html="icon('plus','w-4 h-4')"></button>
                 </div>
               </form>
 
-              <div class="space-y-2.5 max-h-[400px] overflow-y-auto pr-1 relative">
+              <div class="space-y-2.5 task-scroll overflow-y-auto pr-1 relative">
                 <transition-group name="list">
                   <div v-for="(task, idx) in todayTasks" :key="task.id"
                        :draggable="editingTaskId !== task.id"
@@ -464,7 +471,7 @@
                        @dragenter.prevent="onDragEnter(idx)"
                        @dragover.prevent
                        @dragend="onDragEnd"
-                       class="task-card rounded-2xl px-4 py-3 cursor-pointer"
+                       class="task-card rounded-2xl px-4 py-3 xl:py-4 cursor-pointer"
                        :class="{ 'active-task': activeTaskId === task.id }"
                        :style="{ opacity: dragTaskId === task.id ? 0.4 : 1 }"
                        @click="editingTaskId !== task.id && setActiveTask(task.id)">
@@ -480,7 +487,7 @@
                         <span v-if="task.done" v-html="icon('check','w-3 h-3')" style="color:#0a0b0d"></span>
                       </button>
 
-                      <span class="flex-1 text-sm min-w-0 truncate task-strike" :class="{ 'is-done opacity-40': task.done }">{{ task.text }}</span>
+                      <span class="flex-1 text-sm xl:text-base min-w-0 truncate task-strike" :class="{ 'is-done opacity-40': task.done }">{{ task.text }}</span>
                       <span v-if="task.time" class="text-[0.65rem] font-mono shrink-0 hidden sm:inline" style="color:var(--text-tertiary)">{{ task.time }}</span>
 
                       <!-- NEW: edit button -->
@@ -515,7 +522,7 @@
             </transition>
           </div>
 
-          <div v-else class="glass rounded-3xl p-8 sm:p-10 flex flex-col items-center justify-center text-center fade-slide-in min-h-[400px]">
+          <div v-else class="glass rounded-3xl p-8 sm:p-10 flex flex-col items-center justify-center text-center fade-slide-in min-h-[400px] xl:min-h-[520px]">
             <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 accent-soft-bg accent-transition">
               <span v-html="icon(mode === 'short_break' ? 'coffee' : 'moon','w-7 h-7')" style="color:var(--accent)"></span>
             </div>
@@ -544,10 +551,8 @@
   </transition>
   <transition name="drawer">
     <aside v-if="showMenu" class="nav-menu nav-menu-wrap" role="menu" aria-label="Menu">
-      <div class="px-5 flex items-center border-b shrink-0" :style="{borderColor:'var(--glass-border)', height: menuHeadH + 'px'}">
-        <span class="font-display font-bold text-lg tracking-wide">Menu</span>
-      </div>
-      <nav class="flex-1 overflow-y-auto p-3 space-y-1">
+      <div class="shrink-0" :style="{ height: menuHeadH + 'px' }"></div>
+      <nav class="flex-1 overflow-y-auto px-3 pb-3 space-y-1">
         <button v-for="m in menuItems" :key="m.key" class="nav-item" role="menuitem" @click="menuAction(m.key)">
           <span class="nav-item-icon" v-html="icon(m.icon,'w-[18px] h-[18px]')"></span>
           <span class="flex-1">{{ m.label }}</span>
