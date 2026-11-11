@@ -551,8 +551,10 @@
   </transition>
   <transition name="drawer">
     <aside v-if="showMenu" class="nav-menu nav-menu-wrap" role="menu" aria-label="Menu">
-      <div class="shrink-0" :style="{ height: menuHeadH + 'px' }"></div>
-      <nav class="flex-1 overflow-y-auto px-3 pb-3 space-y-1">
+      <div class="px-5 flex items-center border-b shrink-0" :style="{borderColor:'var(--glass-border)', height: menuHeadH + 'px'}">
+        <span class="font-display font-bold text-lg tracking-wide">Menu</span>
+      </div>
+      <nav class="flex-1 overflow-y-auto p-3 space-y-1">
         <button v-for="m in menuItems" :key="m.key" class="nav-item" role="menuitem" @click="menuAction(m.key)">
           <span class="nav-item-icon" v-html="icon(m.icon,'w-[18px] h-[18px]')"></span>
           <span class="flex-1">{{ m.label }}</span>
