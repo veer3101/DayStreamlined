@@ -161,24 +161,33 @@
   .mode-tab.active{ color: #0a0b0d; }
   .mode-pill{ transition: transform .4s cubic-bezier(.65,0,.35,1), width .4s cubic-bezier(.65,0,.35,1), background-color .5s ease, opacity .25s ease; left: 0; }
 
-  .overlay-backdrop{ background: var(--overlay-bg); backdrop-filter: blur(4px); transition: background-color .5s ease; }
+  .overlay-backdrop{ background: var(--overlay-bg); }
 
   @keyframes fadeSlideIn{ from{ opacity: 0; transform: translateY(8px); } to{ opacity: 1; transform: translateY(0); } }
   .fade-slide-in{ animation: fadeSlideIn .4s ease both; }
 
-  .fade-enter-active, .fade-leave-active{ transition: opacity .35s ease, transform .35s ease; }
+  .fade-enter-active, .fade-leave-active{ transition: opacity .3s ease, transform .3s cubic-bezier(.22,1,.36,1); }
   .fade-enter-from{ opacity: 0; transform: translateY(6px); }
   .fade-leave-to{ opacity: 0; transform: translateY(-6px); }
 
-  .modal-enter-active, .modal-leave-active{ transition: opacity .25s ease; }
+  /* Smooth transitions: only transform + opacity animate, one shared easing */
+  :root{ --ease-smooth: cubic-bezier(.22,1,.36,1); }
+  .modal-enter-active{ transition: opacity .28s ease-out; }
+  .modal-leave-active{ transition: opacity .2s ease-in; }
   .modal-enter-from, .modal-leave-to{ opacity: 0; }
-  .modal-enter-active .modal-panel, .modal-leave-active .modal-panel{ transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .25s ease; }
-  .modal-enter-from .modal-panel, .modal-leave-to .modal-panel{ transform: scale(0.94) translateY(10px); opacity: 0; }
+  .modal-enter-active .modal-panel{ transition: transform .36s var(--ease-smooth); }
+  .modal-leave-active .modal-panel{ transition: transform .2s ease-in; }
+  .modal-enter-from .modal-panel, .modal-leave-to .modal-panel{ transform: translate3d(0,14px,0) scale(0.975); }
+  /* Panels that animate use a solid themed surface instead of live blur, so they stay smooth */
+  .modal-panel, .float-popup{ -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+    background: linear-gradient(var(--glass-bg-strong), var(--glass-bg-strong)), var(--bg-base) !important;
+    will-change: transform, opacity; backface-visibility: hidden; }
 
-  .popup-enter-active, .popup-leave-active{ transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .25s ease; }
-  .popup-enter-from, .popup-leave-to{ transform: scale(0.92) translateY(8px); opacity: 0; }
+  .popup-enter-active{ transition: transform .32s var(--ease-smooth), opacity .24s ease-out; }
+  .popup-leave-active{ transition: transform .18s ease-in, opacity .18s ease-in; }
+  .popup-enter-from, .popup-leave-to{ transform: translate3d(0,-8px,0) scale(0.97); opacity: 0; }
 
-  .list-enter-active, .list-leave-active{ transition: all .3s ease; }
+  .list-enter-active, .list-leave-active, .list-move{ transition: transform .3s cubic-bezier(.22,1,.36,1), opacity .25s ease; }
   .list-enter-from{ opacity: 0; transform: translateX(-10px); }
   .list-leave-to{ opacity: 0; transform: translateX(10px); }
   .list-leave-active{ position: absolute; width: 100%; }
@@ -231,6 +240,79 @@
   .fs-time{ font-size: clamp(3.5rem, 15vmin, 10rem); line-height: 1; letter-spacing: -0.02em; }
   .fs-task{ max-width: min(80vw, 560px); }
 
+  .fs-time.fs-time-long{ font-size: clamp(2.4rem, 10.5vmin, 7rem); }
+
+  /* ===== NEW: Settings rows + wheel pickers ===== */
+  .set-row{ border: 1px solid var(--glass-border); background: var(--glass-bg); border-radius: 14px; overflow: hidden; transition: border-color .3s ease, background-color .3s ease; }
+  .set-row.open{ border-color: var(--accent); }
+  .set-row-head{ width: 100%; display: flex; align-items: center; gap: 10px; padding: 11px 14px; text-align: left; }
+  .set-row-chev{ transition: transform .3s ease; color: var(--text-tertiary); }
+  .set-row.open .set-row-chev{ transform: rotate(90deg); color: var(--accent); }
+  .set-row-body{ display: grid; grid-template-rows: 0fr; transition: grid-template-rows .32s cubic-bezier(.4,0,.2,1); }
+  .set-row.open .set-row-body{ grid-template-rows: 1fr; }
+  .set-row-body > div{ min-height: 0; overflow: hidden; }
+
+  .wheel{ position: relative; display: flex; flex-direction: column; align-items: center; width: 76px; user-select: none; -webkit-user-select: none; }
+  .wheel-arrow{ width: 100%; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 10px;
+    color: var(--text-secondary); touch-action: manipulation; transition: background-color .2s ease, color .2s ease; }
+  .wheel-arrow:hover{ background: var(--glass-bg-strong); color: var(--text-primary); }
+  .wheel-arrow.held{ background: var(--accent-soft); color: var(--accent); }
+  .wheel-arrow:disabled{ opacity: .25; pointer-events: none; }
+  .wheel-frame{ position: relative; width: 100%; height: 180px; }
+  .wheel-band{ position: absolute; left: 0; right: 0; top: 72px; height: 36px; border-radius: 10px; background: var(--accent-soft);
+    border: 1px solid var(--glass-border); pointer-events: none; }
+  .wheel-viewport{ position: relative; height: 180px; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; overscroll-behavior: contain;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 70%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 70%, transparent 100%); }
+  .wheel-viewport::-webkit-scrollbar{ display: none; }
+  .wheel-viewport:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 10px; }
+  .wheel-pad{ height: 72px; }
+  .wheel-item{ height: 36px; display: flex; align-items: center; justify-content: center; scroll-snap-align: center;
+    font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; font-size: 1.05rem; color: var(--text-tertiary);
+    cursor: pointer; transition: color .15s ease, font-size .15s ease, opacity .15s ease; }
+  .wheel-item.near{ color: var(--text-secondary); }
+  .wheel-item.active{ color: var(--text-primary); font-size: 1.45rem; font-weight: 700; }
+  .wheel-unit{ font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-tertiary); margin-top: 4px; }
+  .wheel-sep{ font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 700; color: var(--text-tertiary); align-self: center; margin-top: -14px; }
+
+  /* ===== NEW: Header menu ===== */
+  .menu-btn svg{ transition: transform .4s cubic-bezier(.22,1,.36,1); }
+  .menu-btn.open{ color: var(--accent); background: var(--accent-soft); }
+  .menu-btn.open svg{ transform: rotate(90deg); }
+  .nav-backdrop{ position: fixed; inset: 0; z-index: 54; background: var(--overlay-bg); }
+  .nav-menu{ position: fixed; top: 0; right: 0; bottom: 0; width: min(320px, 86vw); z-index: 55; display: flex; flex-direction: column;
+    background: linear-gradient(var(--glass-bg-strong), var(--glass-bg-strong)), var(--bg-base);
+    border-left: 1px solid var(--glass-border); box-shadow: -16px 0 48px rgba(0,0,0,0.3); }
+  .nav-menu{ will-change: transform; backface-visibility: hidden; }
+  .drawer-enter-active{ transition: transform .4s cubic-bezier(.22,1,.36,1); }
+  .drawer-leave-active{ transition: transform .26s cubic-bezier(.4,0,1,1); }
+  .drawer-enter-from, .drawer-leave-to{ transform: translate3d(100%,0,0); }
+  .backdrop-enter-active{ transition: opacity .32s ease-out; }
+  .backdrop-leave-active{ transition: opacity .24s ease-in; }
+  .backdrop-enter-from, .backdrop-leave-to{ opacity: 0; }
+  .menu-clone{ position: fixed; z-index: 56; }
+  .icon-btn.menu-btn:hover, .icon-btn.menu-btn:active{ transform: none; }
+  .twist-enter-active, .twist-leave-active{ transition: background-color .45s ease, color .45s ease; }
+  .twist-enter-active svg, .twist-leave-active svg{ transition: transform .55s cubic-bezier(.22,1,.36,1); }
+  .menu-btn.open.twist-enter-from svg, .menu-btn.open.twist-leave-to svg{ transform: rotate(0deg); }
+  .menu-btn.open.twist-enter-from, .menu-btn.open.twist-leave-to{ background: transparent; color: var(--text-secondary); }
+  .nav-item{ width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 12px; border-radius: 14px; text-align: left;
+    font-size: .95rem; font-weight: 500; color: var(--text-primary); transition: background-color .2s ease; }
+  .nav-item:hover{ background: var(--accent-soft); }
+  .nav-item-icon{ width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    background: var(--accent-soft); color: var(--accent); flex-shrink: 0; }
+
+  /* ===== NEW: visible drag handle (tasks + bookmarks) ===== */
+  .drag-handle{ width: 26px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0;
+    color: var(--text-secondary); background: var(--accent-soft); border: 1px solid var(--glass-border); cursor: grab;
+    transition: color .2s ease, border-color .2s ease; }
+  .drag-handle:hover{ color: var(--accent); border-color: var(--accent); }
+  .drag-handle:active{ cursor: grabbing; }
+  .bm-avatar{ width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: .95rem; text-transform: uppercase; }
+  .bm-link{ color: inherit; text-decoration: none; }
+  .bm-link:hover .bm-name{ color: var(--accent); }
+
   /* ===== NEW: Quote period chips ===== */
   .period-chip{ border-radius: 9999px; padding: 6px 12px; font-size: 0.72rem; font-weight: 600; }
 
@@ -260,15 +342,13 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-1 sm:gap-1.5">
-          <button @click="openAnalytics" class="icon-btn" title="Analytics" aria-label="Open analytics" v-html="icon('barChart','w-[18px] h-[18px]')"></button>
-          <div class="relative">
-            <button @click="openPlanner" class="icon-btn" title="Planner & Schedule" aria-label="Open planner" v-html="icon('calendar','w-[18px] h-[18px]')"></button>
-            <span v-if="todayTaskCount > 0"
-                  class="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center accent-transition pointer-events-none"
-                  :style="{ background:'var(--accent)', color:'#0a0b0d' }">{{ todayTaskCount > 9 ? '9+' : todayTaskCount }}</span>
-          </div>
-          <button @click="openSettings" class="icon-btn" title="Settings" aria-label="Open settings" v-html="icon('sliders','w-[18px] h-[18px]')"></button>
+        <!-- NEW: menu button + dropdown -->
+        <div class="relative nav-menu-wrap">
+          <button ref="menuBtn" @click="toggleMenu" class="icon-btn menu-btn" :class="{ open: showMenu }" title="Menu"
+                  :aria-label="showMenu ? 'Close menu' : 'Open menu'" :aria-expanded="showMenu" v-html="icon('menu','w-5 h-5')"></button>
+          <span v-if="todayTaskCount > 0 && !showMenu"
+                class="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center accent-transition pointer-events-none"
+                :style="{ background:'var(--accent)', color:'#0a0b0d' }">{{ todayTaskCount > 9 ? '9+' : todayTaskCount }}</span>
         </div>
       </div>
     </header>
@@ -320,7 +400,7 @@
                       class="progress-ring-active" :stroke-dasharray="ringCircumference" :stroke-dashoffset="ringOffset"/>
             </svg>
             <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <div class="font-mono font-bold text-5xl sm:text-6xl tabular-nums tracking-tight">{{ timeDisplay }}</div>
+              <div class="font-mono font-bold tabular-nums tracking-tight" :class="showHours ? 'text-[2.35rem] sm:text-[2.6rem]' : 'text-5xl sm:text-6xl'">{{ timeDisplay }}</div>
               <div class="text-[0.65rem] mt-2 font-medium" style="color:var(--text-tertiary)">{{ timerStatusText }}</div>
             </div>
           </div>
@@ -390,7 +470,7 @@
                        @click="editingTaskId !== task.id && setActiveTask(task.id)">
 
                     <div v-if="editingTaskId !== task.id" class="flex items-center gap-2.5">
-                      <span v-html="icon('gripVertical','w-3.5 h-3.5')" class="opacity-30 cursor-grab shrink-0" style="color:var(--text-tertiary)" @click.stop></span>
+                      <span v-html="icon('gripVertical','w-4 h-4')" class="drag-handle" title="Drag to reorder" @click.stop></span>
 
                       <button @click.stop="toggleTaskDone(task, $event)"
                               class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 accent-transition"
@@ -454,6 +534,34 @@
     </footer>
   </div>
 
+  <!-- ===================== NEW: SIDE MENU PANEL ===================== -->
+  <transition name="backdrop">
+    <div v-if="showMenu" class="nav-backdrop" @click="showMenu = false"></div>
+  </transition>
+  <transition name="twist">
+    <button v-if="showMenu" @click="showMenu = false" class="icon-btn menu-btn open menu-clone nav-menu-wrap" :style="menuBtnPos"
+            title="Close menu" aria-label="Close menu" v-html="icon('menu','w-5 h-5')"></button>
+  </transition>
+  <transition name="drawer">
+    <aside v-if="showMenu" class="nav-menu nav-menu-wrap" role="menu" aria-label="Menu">
+      <div class="px-5 flex items-center border-b shrink-0" :style="{borderColor:'var(--glass-border)', height: menuHeadH + 'px'}">
+        <span class="font-display font-bold text-lg tracking-wide">Menu</span>
+      </div>
+      <nav class="flex-1 overflow-y-auto p-3 space-y-1">
+        <button v-for="m in menuItems" :key="m.key" class="nav-item" role="menuitem" @click="menuAction(m.key)">
+          <span class="nav-item-icon" v-html="icon(m.icon,'w-[18px] h-[18px]')"></span>
+          <span class="flex-1">{{ m.label }}</span>
+          <span v-if="m.key === 'planner' && todayTaskCount > 0"
+                class="min-w-5 h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center"
+                :style="{ background:'var(--accent)', color:'#0a0b0d' }">{{ todayTaskCount > 9 ? '9+' : todayTaskCount }}</span>
+          <span v-else-if="m.key === 'bookmarks' && bookmarks.length" class="text-[0.7rem] font-mono" style="color:var(--text-tertiary)">{{ bookmarks.length }}</span>
+          <span v-html="icon('chevronRight','w-3.5 h-3.5')" style="color:var(--text-tertiary)"></span>
+        </button>
+      </nav>
+      <div class="px-5 py-4 text-[0.7rem] border-t shrink-0" :style="{borderColor:'var(--glass-border)', color:'var(--text-tertiary)'}">Day Streamlined · by Veer Singh</div>
+    </aside>
+  </transition>
+
   <!-- ===================== NEW: FULLSCREEN TIMER ===================== -->
   <transition name="modal">
     <div v-if="isFullscreen" class="fixed inset-0 z-[60] fs-overlay flex flex-col items-center justify-center p-6 overflow-hidden">
@@ -474,7 +582,7 @@
                     class="progress-ring-active" :stroke-dasharray="ringCircumference" :stroke-dashoffset="ringOffset"/>
           </svg>
           <div class="absolute inset-0 flex flex-col items-center justify-center px-8">
-            <div class="font-mono font-bold tabular-nums fs-time">{{ timeDisplay }}</div>
+            <div class="font-mono font-bold tabular-nums fs-time" :class="{ 'fs-time-long': showHours }">{{ timeDisplay }}</div>
             <div class="text-xs sm:text-sm mt-3 font-medium" style="color:var(--text-tertiary)">{{ timerStatusText }}</div>
             <div v-if="mode==='pomodoro' && priorityTask" class="fs-task text-sm sm:text-base font-semibold mt-3 truncate text-center" style="color:var(--text-secondary)">{{ priorityTask.text }}</div>
             <div v-else-if="mode!=='pomodoro'" class="fs-task text-sm sm:text-base font-semibold mt-3 text-center" style="color:var(--text-secondary)">{{ currentBreakPrompt }}</div>
@@ -510,19 +618,41 @@
         </div>
 
         <form @submit.prevent="showSettings = false" class="space-y-4">
-          <div v-for="d in durationFields" :key="d.key">
-            <label class="text-xs font-medium flex justify-between mb-1.5" style="color:var(--text-secondary)">
-              <span>{{ d.label }}</span><span class="font-mono">{{ durations[d.key] }} min</span>
-            </label>
-            <input type="range" min="1" max="60" v-model.number="durations[d.key]" @input="onDurationChange" class="w-full" />
-          </div>
+          <!-- NEW: expandable rows with scroll-wheel pickers -->
+          <div class="space-y-2">
+            <div v-for="d in durationFields" :key="d.key" class="set-row" :class="{ open: openSettingRow === d.key }">
+              <button type="button" class="set-row-head" @click="toggleSettingRow(d.key)" :aria-expanded="openSettingRow === d.key">
+                <span v-html="icon(d.icon,'w-4 h-4')" style="color:var(--accent)"></span>
+                <span class="text-sm font-medium flex-1">{{ d.label }}</span>
+                <span class="text-xs font-mono" style="color:var(--text-secondary)">{{ formatDuration(durations[d.key]) }}</span>
+                <span class="set-row-chev" v-html="icon('chevronRight','w-3.5 h-3.5')"></span>
+              </button>
+              <div class="set-row-body"><div>
+                <div v-if="openSettingRow === d.key" class="flex items-start justify-center gap-3 pt-1 pb-4">
+                  <wheel-picker :model-value="Math.floor(durations[d.key] / 60)" :min="0" :max="23" unit="hours"
+                                @update:model-value="v => setDurationPart(d.key, 'h', v)"></wheel-picker>
+                  <span class="wheel-sep">:</span>
+                  <wheel-picker :model-value="durations[d.key] % 60" :min="0" :max="59" unit="min" :pad="true"
+                                @update:model-value="v => setDurationPart(d.key, 'm', v)"></wheel-picker>
+                </div>
+              </div></div>
+            </div>
 
-          <!-- NEW: rounds before long break -->
-          <div>
-            <label class="text-xs font-medium flex justify-between mb-1.5" style="color:var(--text-secondary)">
-              <span>Focus rounds before long break</span><span class="font-mono">{{ roundsPerCycle }}</span>
-            </label>
-            <input type="range" min="1" max="12" v-model.number="roundsPerCycle" @input="onRoundsChange" class="w-full" />
+            <div class="set-row" :class="{ open: openSettingRow === 'rounds' }">
+              <button type="button" class="set-row-head" @click="toggleSettingRow('rounds')" :aria-expanded="openSettingRow === 'rounds'">
+                <span v-html="icon('rotateCcw','w-4 h-4')" style="color:var(--accent)"></span>
+                <span class="text-sm font-medium flex-1">Focus cycle</span>
+                <span class="text-xs font-mono" style="color:var(--text-secondary)">{{ roundsPerCycle }} {{ roundsPerCycle === 1 ? 'round' : 'rounds' }}</span>
+                <span class="set-row-chev" v-html="icon('chevronRight','w-3.5 h-3.5')"></span>
+              </button>
+              <div class="set-row-body"><div>
+                <div v-if="openSettingRow === 'rounds'" class="flex flex-col items-center pt-1 pb-4">
+                  <wheel-picker :model-value="roundsPerCycle" :min="1" :max="12" unit="rounds"
+                                @update:model-value="v => { roundsPerCycle = v; onRoundsChange(); }"></wheel-picker>
+                  <p class="text-[0.65rem] mt-2 text-center px-4" style="color:var(--text-tertiary)">Focus rounds before the long break</p>
+                </div>
+              </div></div>
+            </div>
           </div>
 
           <div class="pt-2 border-t" :style="{borderColor:'var(--glass-border)'}">
@@ -820,10 +950,85 @@
     </div>
   </transition>
 
-  <!-- ===================== FLOATING: THEME SWITCHER (bottom-right) ===================== -->
-  <button class="float-btn glass-strong" style="right:20px; bottom:20px;" @click="toggleThemeSwitcher" aria-label="Change theme" v-html="icon('palette','w-5 h-5')"></button>
+  <!-- ===================== NEW: BOOKMARKS MODAL ===================== -->
+  <transition name="modal">
+    <div v-if="showBookmarks" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overlay-backdrop" @click.self="showBookmarks = false">
+      <div class="modal-panel glass-strong rounded-3xl w-full max-w-2xl h-[92vh] flex flex-col overflow-hidden">
+
+        <div class="px-5 sm:px-7 py-4 flex items-center justify-between border-b shrink-0" :style="{borderColor:'var(--glass-border)'}">
+          <h3 class="font-display font-bold text-lg flex items-center gap-2 tracking-wide">
+            <span v-html="icon('bookmark','w-5 h-5')" style="color:var(--accent)"></span>Bookmarked Sites
+          </h3>
+          <button @click="showBookmarks = false" class="icon-btn" aria-label="Close bookmarks" v-html="icon('x','w-4 h-4')"></button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-5 sm:p-7">
+          <form @submit.prevent="addBookmark" class="space-y-2 mb-5">
+            <input v-model="newBmName" type="text" placeholder="Site name or description…" maxlength="80"
+                   class="w-full glass-strong rounded-xl px-4 py-2.5 text-sm outline-none placeholder:opacity-50"
+                   :style="{ color: 'var(--text-primary)' }" @keydown.enter.prevent="addBookmark" />
+            <div class="flex gap-2">
+              <input v-model="newBmUrl" type="text" inputmode="url" placeholder="Link (e.g. youtube.com)" maxlength="500"
+                     class="flex-1 min-w-0 glass-strong rounded-xl px-4 py-2.5 text-xs font-mono outline-none placeholder:opacity-50"
+                     :style="{ color: 'var(--text-primary)' }" @keydown.enter.prevent="addBookmark" />
+              <button type="button" @click="addBookmark" class="btn-accent rounded-xl px-4 flex items-center justify-center shrink-0" aria-label="Add bookmark" v-html="icon('plus','w-4 h-4')"></button>
+            </div>
+            <p v-if="bmError" class="text-[0.7rem]" style="color:var(--accent)">{{ bmError }}</p>
+          </form>
+
+          <div class="space-y-2.5 relative">
+            <transition-group name="list">
+              <div v-for="(b, idx) in bookmarks" :key="b.id"
+                   :draggable="editingBmId !== b.id"
+                   @dragstart="dragBmId = b.id" @dragenter.prevent="dragBmOver = idx" @dragover.prevent @dragend="onBmDragEnd"
+                   class="task-card rounded-2xl px-3.5 py-3"
+                   :style="{ opacity: dragBmId === b.id ? 0.4 : 1 }">
+
+                <div v-if="editingBmId !== b.id" class="flex items-center gap-2.5">
+                  <span v-html="icon('gripVertical','w-4 h-4')" class="drag-handle" title="Drag to reorder"></span>
+                  <a :href="b.url" target="_blank" rel="noopener noreferrer" class="bm-link flex items-center gap-3 flex-1 min-w-0" draggable="false">
+                    <span class="bm-avatar">{{ (b.name || bmHost(b.url)).charAt(0) }}</span>
+                    <span class="min-w-0 flex-1">
+                      <span class="bm-name block text-sm font-semibold truncate accent-transition">{{ b.name || bmHost(b.url) }}</span>
+                      <span class="block text-[0.7rem] font-mono truncate" style="color:var(--text-tertiary)">{{ bmHost(b.url) }}</span>
+                    </span>
+                    <span v-html="icon('externalLink','w-3.5 h-3.5')" class="shrink-0" style="color:var(--text-tertiary)"></span>
+                  </a>
+                  <button @click="startEditBm(b)" class="icon-btn !w-7 !h-7 shrink-0" aria-label="Edit bookmark" v-html="icon('pencil','w-3.5 h-3.5')"></button>
+                  <button @click="deleteBookmark(b.id)" class="icon-btn !w-7 !h-7 shrink-0" aria-label="Delete bookmark" v-html="icon('x','w-3.5 h-3.5')"></button>
+                </div>
+
+                <div v-else class="space-y-2">
+                  <div>
+                    <label class="text-[0.6rem] font-semibold uppercase tracking-wide mb-1 block" style="color:var(--text-tertiary)">Site name or description</label>
+                    <input v-model="editBmName" type="text" maxlength="80" class="w-full glass-strong rounded-lg px-3 py-1.5 text-sm outline-none" @keydown.enter.prevent="saveEditBm(b)" @keydown.esc="editingBmId = null" />
+                  </div>
+                  <div>
+                    <label class="text-[0.6rem] font-semibold uppercase tracking-wide mb-1 block" style="color:var(--text-tertiary)">Link</label>
+                    <input v-model="editBmUrl" type="text" inputmode="url" maxlength="500" class="w-full glass-strong rounded-lg px-3 py-1.5 text-xs font-mono outline-none" @keydown.enter.prevent="saveEditBm(b)" @keydown.esc="editingBmId = null" />
+                  </div>
+                  <p v-if="bmEditError" class="text-[0.7rem]" style="color:var(--accent)">{{ bmEditError }}</p>
+                  <div class="flex gap-2">
+                    <button type="button" @click="saveEditBm(b)" class="btn-accent rounded-lg px-3 py-1 text-xs flex-1">Save</button>
+                    <button type="button" @click="editingBmId = null" class="btn-ghost rounded-lg px-3 py-1 text-xs flex-1">Cancel</button>
+                  </div>
+                </div>
+              </div>
+            </transition-group>
+
+            <div v-if="bookmarks.length === 0" class="text-center py-12" style="color:var(--text-tertiary)">
+              <span v-html="icon('bookmark','w-7 h-7')" class="inline-block mb-2 opacity-50"></span>
+              <p class="text-sm">No bookmarks yet. Add the sites you study or work with.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <!-- ===================== CUSTOMIZATION PANEL (opened from the menu) ===================== -->
   <transition name="popup">
-    <div v-if="showThemeSwitcher" class="float-popup glass-strong rounded-3xl p-4 w-72 overflow-y-auto" style="right:20px; bottom:84px; max-height:calc(100vh - 110px);">
+    <div v-if="showThemeSwitcher" class="float-popup glass-strong rounded-3xl p-4 w-72 overflow-y-auto" style="right:16px; top:76px; max-width:calc(100vw - 32px); max-height:calc(100vh - 96px);">
       <div class="flex items-center justify-between mb-3 px-1">
         <span class="text-xs font-bold uppercase tracking-widest" style="color:var(--text-primary)">Scene</span>
         <button @click="showThemeSwitcher=false" class="icon-btn !w-7 !h-7" v-html="icon('x','w-3.5 h-3.5')"></button>
@@ -1104,6 +1309,9 @@ const ICONS = {
   // NEW icons
   maximize: '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>',
   minimize: '<path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/>',
+  menu: '<line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>',
+  bookmark: '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
+  externalLink: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
   quote: '<path d="M3 21c3 0 7-1 7-8V5c0-1.25-.76-2-2-2H4c-1.25 0-2 .75-2 2v6c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 0-1 1v2c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.76-2-2-2h-4c-1.25 0-2 .75-2 2v6c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/>',
 };
 function svgIcon(name, cls){
@@ -1150,10 +1358,11 @@ createApp({
       isFullscreen: false, // NEW
 
       showSettings: false,
+      openSettingRow: null, // NEW
       durationFields: [
-        { key: 'pomodoro', label: 'Focus length' },
-        { key: 'short_break', label: 'Short break' },
-        { key: 'long_break', label: 'Long break' },
+        { key: 'pomodoro', label: 'Focus length', icon: 'target' },
+        { key: 'short_break', label: 'Short break', icon: 'coffee' },
+        { key: 'long_break', label: 'Long break', icon: 'moon' },
       ],
 
       greeting: '',
@@ -1198,6 +1407,24 @@ createApp({
       dragTaskId: null,
       dragOverIndex: null,
 
+      // NEW: header menu
+      showMenu: false,
+      menuBtnPos: { top: '12px', right: '16px' },
+      menuHeadH: 66,
+      menuItems: [
+        { key: 'customize', label: 'Customization', icon: 'palette' },
+        { key: 'planner',   label: 'Calendar',      icon: 'calendar' },
+        { key: 'analytics', label: 'Analytics',     icon: 'barChart' },
+        { key: 'bookmarks', label: 'Bookmarks',     icon: 'bookmark' },
+        { key: 'settings',  label: 'Settings',      icon: 'sliders' },
+      ],
+      // NEW: bookmarked sites ({ id, name, url })
+      showBookmarks: false,
+      bookmarks: [],
+      newBmName: '', newBmUrl: '', bmError: '',
+      editingBmId: null, editBmName: '', editBmUrl: '', bmEditError: '',
+      dragBmId: null, dragBmOver: null,
+
       showAnalytics: false,
       tipsExpanded: false,
 
@@ -1225,9 +1452,16 @@ createApp({
   computed: {
     todayStr(){ return this.toDateStr(new Date()); },
     modeLabel(){ return this.mode === 'pomodoro' ? 'Focus Session' : (this.mode === 'short_break' ? 'Short Break' : 'Long Break'); },
+    // NEW: show HH:MM:SS when the current mode's length includes hours
+    showHours(){ return this.durations[this.mode] >= 60; },
     timeDisplay(){
-      const m = Math.floor(this.secondsLeft / 60).toString().padStart(2,'0');
       const s = (this.secondsLeft % 60).toString().padStart(2,'0');
+      if(this.showHours){
+        const h = Math.floor(this.secondsLeft / 3600).toString().padStart(2,'0');
+        const m = Math.floor((this.secondsLeft % 3600) / 60).toString().padStart(2,'0');
+        return h + ':' + m + ':' + s;
+      }
+      const m = Math.floor(this.secondsLeft / 60).toString().padStart(2,'0');
       return m + ':' + s;
     },
     timerStatusText(){ return this.isRunning ? 'Focusing…' : (this.secondsLeft===this.durations[this.mode]*60 ? 'Ready' : 'Paused'); },
@@ -1411,6 +1645,74 @@ createApp({
       if(this.themeKey === 'black') this.applyTheme();
       this.persist();
     },
+    // ===================== NEW: MENU =====================
+    measureMenuBtn(){
+      const btn = this.$refs.menuBtn; if(!btn) return;
+      const r = btn.getBoundingClientRect();
+      this.menuBtnPos = { top: r.top + 'px', left: r.left + 'px' };
+      const head = btn.closest('header');
+      if(head) this.menuHeadH = Math.round(head.getBoundingClientRect().height);
+    },
+    toggleMenu(){
+      if(!this.showMenu) this.measureMenuBtn();
+      this.showMenu = !this.showMenu;
+    },
+    menuAction(key){
+      this.showMenu = false;
+      if(key === 'customize'){ this.showThemeSwitcher = true; return; }
+      this.showThemeSwitcher = false; this.customizeOpenFor = null;
+      if(key === 'planner') this.openPlanner();
+      else if(key === 'analytics') this.openAnalytics();
+      else if(key === 'bookmarks') this.openBookmarks();
+      else if(key === 'settings') this.openSettings();
+    },
+
+    // ===================== NEW: BOOKMARKS =====================
+    openBookmarks(){ this.showBookmarks = true; this.editingBmId = null; this.bmError = ''; },
+    // Returns a safe http(s) link, or null if it isn't a valid web address
+    normalizeUrl(raw){
+      let v = (raw || '').trim();
+      if(!v) return null;
+      if(!/^[a-z][a-z0-9+.-]*:\/\//i.test(v)) v = 'https://' + v;
+      try{
+        const u = new URL(v);
+        if(u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+        if(!u.hostname.includes('.') && u.hostname !== 'localhost') return null;
+        return u.href;
+      }catch(e){ return null; }
+    },
+    bmHost(url){ try{ return new URL(url).hostname.replace(/^www\./, ''); }catch(e){ return url; } },
+    addBookmark(){
+      const url = this.normalizeUrl(this.newBmUrl);
+      if(!this.newBmUrl.trim()){ this.bmError = 'Add a link first.'; return; }
+      if(!url){ this.bmError = "That doesn't look like a web link. Try something like youtube.com"; return; }
+      this.bookmarks.push({ id: 'bm_' + Date.now() + '_' + Math.random().toString(36).slice(2,7), name: this.newBmName.trim(), url });
+      this.newBmName = ''; this.newBmUrl = ''; this.bmError = '';
+      this.persist();
+    },
+    startEditBm(b){ this.editingBmId = b.id; this.editBmName = b.name; this.editBmUrl = b.url; this.bmEditError = ''; },
+    saveEditBm(b){
+      const url = this.normalizeUrl(this.editBmUrl);
+      if(!url){ this.bmEditError = "That doesn't look like a web link."; return; }
+      b.name = this.editBmName.trim(); b.url = url;
+      this.editingBmId = null;
+      this.persist();
+    },
+    deleteBookmark(id){
+      this.bookmarks = this.bookmarks.filter(b => b.id !== id);
+      if(this.editingBmId === id) this.editingBmId = null;
+      this.persist();
+    },
+    onBmDragEnd(){
+      const from = this.bookmarks.findIndex(b => b.id === this.dragBmId), to = this.dragBmOver;
+      if(from > -1 && to != null && from !== to){
+        const moved = this.bookmarks.splice(from, 1)[0];
+        this.bookmarks.splice(to, 0, moved);
+        this.persist();
+      }
+      this.dragBmId = null; this.dragBmOver = null;
+    },
+
     toggleThemeSwitcher(){
       this.showThemeSwitcher = !this.showThemeSwitcher;
       if(!this.showThemeSwitcher) this.customizeOpenFor = null;
@@ -1704,7 +2006,20 @@ createApp({
     },
 
     // ===================== MODALS =====================
-    openSettings(){ this.showSettings = true; },
+    openSettings(){ this.showSettings = true; this.openSettingRow = null; },
+    // NEW: settings rows + wheel pickers
+    toggleSettingRow(key){ this.openSettingRow = this.openSettingRow === key ? null : key; },
+    formatDuration(total){
+      const h = Math.floor(total / 60), m = total % 60;
+      if(!h) return m + ' min';
+      return h + ' h' + (m ? ' ' + m + ' min' : '');
+    },
+    setDurationPart(key, part, val){
+      let h = Math.floor(this.durations[key] / 60), m = this.durations[key] % 60;
+      if(part === 'h') h = val; else m = val;
+      this.durations[key] = Math.max(1, Math.min(23 * 60 + 59, h * 60 + m)); // 1 min to 23 h 59 min
+      this.onDurationChange();
+    },
     openAnalytics(){ this.showAnalytics = true; this.tipsExpanded = false; },
     openPlanner(){
       this.showPlanner = true;
@@ -1814,6 +2129,7 @@ createApp({
         sessionLog: this.sessionLog, tasks: this.tasks, mode: this.mode,
         roundsPerCycle: this.roundsPerCycle, showDefaultQuotes: this.showDefaultQuotes, customQuotes: this.customQuotes,
         customWallpapers: this.customWallpapers,
+        bookmarks: this.bookmarks,
       };
       try{ localStorage.setItem('daydone_state_v3', JSON.stringify(payload)); }
       catch(e){ this._memoryStore = payload; }
@@ -1839,6 +2155,7 @@ createApp({
       if(data.mode) this.mode = data.mode;
       if(typeof data.roundsPerCycle === 'number' && data.roundsPerCycle >= 1) this.roundsPerCycle = data.roundsPerCycle;
       if(typeof data.showDefaultQuotes === 'boolean') this.showDefaultQuotes = data.showDefaultQuotes;
+      if(Array.isArray(data.bookmarks)) this.bookmarks = data.bookmarks.filter(b => b && b.id && typeof b.url === 'string' && /^https?:\/\//i.test(b.url)).map(b => ({ name: '', ...b }));
       if(Array.isArray(data.customQuotes)) this.customQuotes = data.customQuotes.filter(q => q && q.text && Array.isArray(q.periods));
     }
   },
@@ -1860,7 +2177,7 @@ createApp({
     this.breakPromptInterval = setInterval(() => { if(this.mode !== 'pomodoro') this.rotateBreakPrompt(); }, 9000);
 
     this.measurePill();
-    this._onResize = () => this.measurePill();
+    this._onResize = () => { this.measurePill(); if(this.showMenu) this.measureMenuBtn(); };
     window.addEventListener('resize', this._onResize);
 
     // NEW: keep fullscreen overlay in sync with browser fullscreen (Esc key etc.)
@@ -1869,8 +2186,12 @@ createApp({
     };
     document.addEventListener('fullscreenchange', this._onFsChange);
     document.addEventListener('webkitfullscreenchange', this._onFsChange);
-    this._onKeydown = (e) => { if(e.key === 'Escape' && this.isFullscreen) this.exitFullscreen(); };
+    this._onKeydown = (e) => { if(e.key === 'Escape' && this.isFullscreen) this.exitFullscreen(); else if(e.key === 'Escape' && this.showMenu) this.showMenu = false; };
     window.addEventListener('keydown', this._onKeydown);
+
+    // NEW: close the header menu when clicking anywhere else
+    this._onDocClick = (e) => { if(this.showMenu && !(e.target.closest && e.target.closest('.nav-menu-wrap'))) this.showMenu = false; };
+    document.addEventListener('click', this._onDocClick);
   },
 
   beforeUnmount(){
@@ -1882,9 +2203,105 @@ createApp({
     document.removeEventListener('fullscreenchange', this._onFsChange);
     document.removeEventListener('webkitfullscreenchange', this._onFsChange);
     window.removeEventListener('keydown', this._onKeydown);
+    document.removeEventListener('click', this._onDocClick);
   }
 
-}).mount('#app');
+})
+// ===================== NEW: WHEEL PICKER =====================
+// Scroll / drag / mouse-wheel to pick; arrows step once on tap and keep stepping while held.
+.component('wheel-picker', {
+  props: { modelValue: { type: Number, required: true }, min: { type: Number, default: 0 }, max: { type: Number, default: 59 }, unit: String, pad: Boolean },
+  emits: ['update:modelValue'],
+  data(){ return { liveVal: this.modelValue, ignoreUntil: 0, settleTimer: null, holdTimer: null, holdDir: 0, wheelAcc: 0, wheelLast: 0 }; },
+  computed: {
+    values(){ const a = []; for(let n = this.min; n <= this.max; n++) a.push(n); return a; },
+  },
+  template: `
+    <div class="wheel">
+      <button type="button" class="wheel-arrow" :class="{ held: holdDir === -1 }" :disabled="liveVal <= min" :aria-label="'Decrease ' + (unit || '')"
+              @pointerdown.prevent="startHold(-1, $event)" @pointerup="stopHold" @pointerleave="stopHold" @pointercancel="stopHold"
+              @contextmenu.prevent @keydown.enter.prevent="step(-1)" @keydown.space.prevent="step(-1)">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+      </button>
+      <div class="wheel-frame">
+        <div class="wheel-band"></div>
+        <div class="wheel-viewport" ref="vp" tabindex="0" role="spinbutton" :aria-valuenow="liveVal" :aria-valuemin="min" :aria-valuemax="max" :aria-label="unit"
+             @scroll.passive="onScroll" @wheel.prevent="onWheel" @keydown.up.prevent="step(-1)" @keydown.down.prevent="step(1)">
+          <div class="wheel-pad"></div>
+          <div v-for="n in values" :key="n" class="wheel-item"
+               :class="{ active: n === liveVal, near: Math.abs(n - liveVal) === 1 }" @click="setTo(n)">{{ fmt(n) }}</div>
+          <div class="wheel-pad"></div>
+        </div>
+      </div>
+      <button type="button" class="wheel-arrow" :class="{ held: holdDir === 1 }" :disabled="liveVal >= max" :aria-label="'Increase ' + (unit || '')"
+              @pointerdown.prevent="startHold(1, $event)" @pointerup="stopHold" @pointerleave="stopHold" @pointercancel="stopHold"
+              @contextmenu.prevent @keydown.enter.prevent="step(1)" @keydown.space.prevent="step(1)">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div v-if="unit" class="wheel-unit">{{ unit }}</div>
+    </div>`,
+  watch: {
+    modelValue(v){ if(v !== this.liveVal){ this.liveVal = v; this.scrollTo(v, true); } },
+  },
+  methods: {
+    fmt(n){ return this.pad ? String(n).padStart(2, '0') : String(n); },
+    clamp(v){ return Math.max(this.min, Math.min(this.max, v)); },
+    scrollTo(v, smooth){
+      const vp = this.$refs.vp; if(!vp) return;
+      this.ignoreUntil = Date.now() + (smooth ? 400 : 120);
+      vp.scrollTo({ top: (v - this.min) * 36, behavior: smooth ? 'smooth' : 'auto' });
+    },
+    commit(v){
+      v = this.clamp(v);
+      this.liveVal = v;
+      if(v !== this.modelValue) this.$emit('update:modelValue', v);
+    },
+    onScroll(){
+      if(Date.now() < this.ignoreUntil) return;
+      const vp = this.$refs.vp;
+      const v = this.clamp(this.min + Math.round(vp.scrollTop / 36));
+      this.liveVal = v;
+      clearTimeout(this.settleTimer);
+      this.settleTimer = setTimeout(() => this.commit(v), 110);
+    },
+    // One mouse-wheel notch = one unit (trackpads accumulate small deltas)
+    onWheel(e){
+      const now = Date.now();
+      if(now - this.wheelLast > 200) this.wheelAcc = 0;
+      this.wheelLast = now;
+      if(e.deltaMode !== 0){ if(e.deltaY) this.step(Math.sign(e.deltaY)); return; }
+      this.wheelAcc += e.deltaY;
+      if(Math.abs(this.wheelAcc) >= 40){ this.step(Math.sign(this.wheelAcc)); this.wheelAcc = 0; }
+    },
+    setTo(n){ this.commit(n); this.scrollTo(n, true); },
+    step(dir, instant){
+      const v = this.clamp(this.liveVal + dir);
+      if(v === this.liveVal) return false;
+      this.commit(v); this.scrollTo(v, !instant);
+      return true;
+    },
+    startHold(dir, e){
+      if(e && e.button !== undefined && e.button !== 0) return;
+      this.stopHold();
+      this.holdDir = dir;
+      this.step(dir);
+      let delay = 140, count = 0;
+      const tick = () => {
+        if(!this.holdDir) return;
+        if(!this.step(dir, true)){ this.stopHold(); return; }
+        count++;
+        if(count > 6) delay = 70;
+        if(count > 20) delay = 40;
+        this.holdTimer = setTimeout(tick, delay);
+      };
+      this.holdTimer = setTimeout(tick, 380);
+    },
+    stopHold(){ this.holdDir = 0; clearTimeout(this.holdTimer); this.holdTimer = null; },
+  },
+  mounted(){ this.$nextTick(() => this.scrollTo(this.liveVal, false)); window.addEventListener('pointerup', this.stopHold); },
+  beforeUnmount(){ this.stopHold(); clearTimeout(this.settleTimer); window.removeEventListener('pointerup', this.stopHold); },
+})
+.mount('#app');
 </script>
 </body>
 </html>
