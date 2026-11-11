@@ -11,7 +11,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@200;400;500;600;700;800&family=Dancing+Script:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
   :root{
@@ -282,6 +282,13 @@
   .timer-status{ font-size: clamp(0.65rem, 4cqw, 0.95rem); }
   .task-scroll{ max-height: clamp(260px, 52vh, 640px); }
 
+  /* ===== NEW: Logo ===== */
+  .brand-logo{ display: block; width: clamp(240px, 24.5vw, 520px); height: auto; color: var(--text-primary); overflow: visible; }
+  .brand-line{ font-family: 'Sora', 'Inter', system-ui, sans-serif; font-size: 40px; fill: currentColor; }
+  .brand-day{ font-weight: 200; }
+  .brand-main{ font-weight: 800; stroke: currentColor; stroke-width: 1.4px; stroke-linejoin: round; paint-order: stroke; }
+  .brand-by{ font-family: 'Dancing Script', 'Brush Script MT', 'Segoe Script', cursive; font-weight: 700; font-size: 24px; fill: currentColor; opacity: .7; }
+
   /* ===== NEW: Header menu ===== */
   .menu-btn svg{ transition: transform .4s cubic-bezier(.22,1,.36,1); }
   .menu-btn.open{ color: var(--accent); background: var(--accent-soft); }
@@ -343,10 +350,11 @@
     <header class="sticky top-0 z-30 glass border-b" :style="{borderColor:'var(--glass-border)'}">
       <div class="w-full px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
         <div class="flex items-center min-w-0">
-          <div class="min-w-0 leading-tight">
-            <div class="font-display font-extrabold text-xl sm:text-2xl tracking-tight truncate accent-transition" style="color:var(--text-primary)">Day Streamlined</div>
-            <div class="text-[0.65rem] font-medium truncate -mt-0.5" style="color:var(--text-tertiary)">by Veer Singh</div>
-          </div>
+          <!-- NEW: logo — thin DAY, heavy STREAMLINED, cursive byline; scales to ~22.5% of the header width -->
+          <svg class="brand-logo accent-transition" viewBox="0 13 548 46" role="img" aria-label="Day Streamlined by Veer Singh">
+            <text x="0" y="46" textLength="400" lengthAdjust="spacing" class="brand-line"><tspan class="brand-day">DAY</tspan><tspan class="brand-main" dx="10">STREAMLINED</tspan></text>
+            <text x="416" y="46" class="brand-by">by Veer Singh</text>
+          </svg>
         </div>
 
         <!-- NEW: menu button + dropdown -->
@@ -1035,7 +1043,7 @@
 
   <!-- ===================== CUSTOMIZATION PANEL (opened from the menu) ===================== -->
   <transition name="popup">
-    <div v-if="showThemeSwitcher" class="float-popup glass-strong rounded-3xl p-4 w-72 overflow-y-auto" style="right:16px; top:76px; max-width:calc(100vw - 32px); max-height:calc(100vh - 96px);">
+    <div v-if="showThemeSwitcher" class="float-popup glass-strong rounded-3xl p-4 w-72 overflow-y-auto" :style="{ right:'16px', top:(menuHeadH + 10) + 'px', maxWidth:'calc(100vw - 32px)', maxHeight:'calc(100vh - ' + (menuHeadH + 30) + 'px)' }">
       <div class="flex items-center justify-between mb-3 px-1">
         <span class="text-xs font-bold uppercase tracking-widest" style="color:var(--text-primary)">Scene</span>
         <button @click="showThemeSwitcher=false" class="icon-btn !w-7 !h-7" v-html="icon('x','w-3.5 h-3.5')"></button>
