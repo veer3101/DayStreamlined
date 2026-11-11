@@ -11,7 +11,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@200;400;500;600;700;800&family=Dancing+Script:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@200;300;400;600;700;800&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
 
 <style>
   :root{
@@ -37,7 +37,8 @@
 
   html, body{
     color: var(--text-primary);
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Sora', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-weight: 300;
     overscroll-behavior: none;
   }
   body{
@@ -47,8 +48,16 @@
     transition: background 0.6s ease-in-out, color .5s ease;
   }
 
-  .font-display{ font-family: 'Sora', 'Inter', system-ui, sans-serif; }
-  .font-mono{ font-family: 'JetBrains Mono', monospace; }
+  /* One typeface site-wide (same as the logo). Two voices: thin like DAY for reading text, heavy like STREAMLINED for titles, numbers and actions. */
+  .font-display{ font-family: 'Sora', system-ui, sans-serif; font-weight: 800; letter-spacing: 0; }
+  .font-mono{ font-family: 'Sora', system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  .font-medium{ font-weight: 300; }
+  .font-semibold{ font-weight: 700; }
+  .font-bold, .font-extrabold{ font-weight: 800; }
+  .btn-accent{ font-weight: 700; }
+  input, textarea, button, select{ font-family: inherit; }
+  input, textarea{ font-weight: 300; }
+  input::placeholder{ font-weight: 200; }
 
   .accent-transition{ transition: color .5s ease, background-color .5s ease, border-color .5s ease, box-shadow .5s ease, fill .5s ease; }
   .text-accent{ color: var(--accent); }
@@ -130,7 +139,7 @@
   .icon-btn:active{ transform: translateY(0); }
 
   .btn-accent{
-    background: var(--accent); color: #0a0b0d; font-weight: 600;
+    background: var(--accent); color: #0a0b0d;
     transition: background-color .35s ease, transform .15s ease, filter .15s ease;
   }
   .btn-accent:hover{ filter: brightness(1.08); transform: translateY(-1px); }
@@ -237,7 +246,7 @@
   /* ===== NEW: Fullscreen timer ===== */
   .fs-overlay{ background: var(--bg-base); background-size: 200% 200%; }
   .fs-ring{ width: min(68vmin, 560px); height: min(68vmin, 560px); }
-  .fs-time{ font-size: clamp(3.5rem, 15vmin, 10rem); line-height: 1; letter-spacing: -0.02em; }
+  .fs-time{ font-size: clamp(3.5rem, 16vmin, 11rem); line-height: 1; letter-spacing: -0.02em; font-weight: 200; }
   .fs-task{ max-width: min(80vw, 560px); }
 
   .fs-time.fs-time-long{ font-size: clamp(2.4rem, 10.5vmin, 7rem); }
@@ -268,23 +277,23 @@
   .wheel-viewport:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 10px; }
   .wheel-pad{ height: 72px; }
   .wheel-item{ height: 36px; display: flex; align-items: center; justify-content: center; scroll-snap-align: center;
-    font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; font-size: 1.05rem; color: var(--text-tertiary);
+    font-family: 'Sora', system-ui, sans-serif; font-weight: 300; font-variant-numeric: tabular-nums; font-size: 1.05rem; color: var(--text-tertiary);
     cursor: pointer; transition: color .15s ease, font-size .15s ease, opacity .15s ease; }
   .wheel-item.near{ color: var(--text-secondary); }
-  .wheel-item.active{ color: var(--text-primary); font-size: 1.45rem; font-weight: 700; }
+  .wheel-item.active{ color: var(--text-primary); font-size: 1.45rem; font-weight: 800; }
   .wheel-unit{ font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-tertiary); margin-top: 4px; }
-  .wheel-sep{ font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 700; color: var(--text-tertiary); align-self: center; margin-top: -14px; }
+  .wheel-sep{ font-family: 'Sora', system-ui, sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--text-tertiary); align-self: center; margin-top: -14px; }
 
   /* ===== NEW: timer + tasks scale with the screen (width AND height), so zoom levels behave ===== */
   .timer-ring{ width: clamp(15rem, min(28vw, 42vh), 28rem); max-width: 100%; aspect-ratio: 1 / 1; container-type: inline-size; }
-  .timer-time{ font-size: 23cqw; line-height: 1; }
-  .timer-time.long{ font-size: 15.5cqw; }
+  .timer-time{ font-size: 25cqw; line-height: 1; font-weight: 200; letter-spacing: -0.01em; }
+  .timer-time.long{ font-size: 16.5cqw; }
   .timer-status{ font-size: clamp(0.65rem, 4cqw, 0.95rem); }
   .task-scroll{ max-height: clamp(260px, 52vh, 640px); }
 
   /* ===== NEW: Logo ===== */
   .brand-logo{ display: block; width: clamp(240px, 24.5vw, 520px); height: auto; color: var(--text-primary); overflow: visible; }
-  .brand-line{ font-family: 'Sora', 'Inter', system-ui, sans-serif; font-size: 40px; fill: currentColor; }
+  .brand-line{ font-family: 'Sora', system-ui, sans-serif; font-size: 40px; fill: currentColor; }
   .brand-day{ font-weight: 200; }
   .brand-main{ font-weight: 800; stroke: currentColor; stroke-width: 1.4px; stroke-linejoin: round; paint-order: stroke; }
   .brand-by{ font-family: 'Dancing Script', 'Brush Script MT', 'Segoe Script', cursive; font-weight: 700; font-size: 24px; fill: currentColor; opacity: .7; }
@@ -310,7 +319,12 @@
   .twist-enter-active svg, .twist-leave-active svg{ transition: transform .55s cubic-bezier(.22,1,.36,1); }
   .menu-btn.open.twist-enter-from svg, .menu-btn.open.twist-leave-to svg{ transform: rotate(0deg); }
   .menu-btn.open.twist-enter-from, .menu-btn.open.twist-leave-to{ background: transparent; color: var(--text-secondary); }
-  .nav-item{ width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 12px; border-radius: 14px; text-align: left;
+  /* Menu type matches the logo: MENU like STREAMLINED (heavy), options like DAY (thin), all caps */
+  .nav-title{ font-family: 'Sora', system-ui, sans-serif; font-weight: 800; font-size: 1.5rem; line-height: 1; letter-spacing: .01em;
+    text-transform: uppercase; color: var(--text-primary); -webkit-text-stroke: .5px currentColor; }
+  .nav-label{ font-family: 'Sora', system-ui, sans-serif; font-weight: 200; font-size: 1.3rem; line-height: 1.2; letter-spacing: .04em;
+    text-transform: uppercase; }
+  .nav-item{ width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 12px; border-radius: 14px; text-align: left;
     font-size: .95rem; font-weight: 500; color: var(--text-primary); transition: background-color .2s ease; }
   .nav-item:hover{ background: var(--accent-soft); }
   .nav-item-icon{ width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
@@ -559,13 +573,12 @@
   </transition>
   <transition name="drawer">
     <aside v-if="showMenu" class="nav-menu nav-menu-wrap" role="menu" aria-label="Menu">
-      <div class="px-5 flex items-center border-b shrink-0" :style="{borderColor:'var(--glass-border)', height: menuHeadH + 'px'}">
-        <span class="font-display font-bold text-lg tracking-wide">Menu</span>
+      <div class="px-6 flex items-center border-b shrink-0" :style="{borderColor:'var(--glass-border)', height: menuHeadH + 'px'}">
+        <span class="nav-title">MENU</span>
       </div>
       <nav class="flex-1 overflow-y-auto p-3 space-y-1">
         <button v-for="m in menuItems" :key="m.key" class="nav-item" role="menuitem" @click="menuAction(m.key)">
-          <span class="nav-item-icon" v-html="icon(m.icon,'w-[18px] h-[18px]')"></span>
-          <span class="flex-1">{{ m.label }}</span>
+          <span class="nav-label flex-1">{{ m.label }}</span>
           <span v-if="m.key === 'planner' && todayTaskCount > 0"
                 class="min-w-5 h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center"
                 :style="{ background:'var(--accent)', color:'#0a0b0d' }">{{ todayTaskCount > 9 ? '9+' : todayTaskCount }}</span>
@@ -578,7 +591,7 @@
   </transition>
 
   <!-- ===================== NEW: FULLSCREEN TIMER ===================== -->
-  <transition name="modal">
+  <transition :css="false" @enter="fsEnter" @leave="fsLeave">
     <div v-if="isFullscreen" class="fixed inset-0 z-[60] fs-overlay flex flex-col items-center justify-center p-6 overflow-hidden">
       <div class="ambient-glow"></div>
       <div class="wallpaper-layer" :style="wallpaperLayerStyle"></div>
@@ -586,7 +599,7 @@
 
       <button @click="exitFullscreen" class="icon-btn glass absolute top-5 right-5 z-10" title="Exit fullscreen" aria-label="Exit fullscreen" v-html="icon('minimize','w-[18px] h-[18px]')"></button>
 
-      <div class="relative z-10 flex flex-col items-center">
+      <div class="relative z-10 flex flex-col items-center fs-content">
         <div class="text-sm font-semibold uppercase tracking-[0.3em] mb-1 accent-transition" style="color:var(--accent)">{{ modeLabel }}</div>
         <div class="text-xs mb-6 text-center" style="color:var(--text-tertiary)">Round {{ currentRound }} of {{ roundsPerCycle }}</div>
 
@@ -2007,17 +2020,47 @@ createApp({
     },
 
     // ===================== NEW: FULLSCREEN =====================
-    enterFullscreen(){
-      this.isFullscreen = true;
+enterFullscreen(){
+      // Go browser-fullscreen first, then play the expand animation once the screen has resized
+      const show = () => { if(this._fsPending){ this._fsPending = false; this.isFullscreen = true; } };
+      this._fsPending = true;
       const el = document.documentElement;
       const req = el.requestFullscreen || el.webkitRequestFullscreen;
-      if(req){ try{ const p = req.call(el); if(p && p.catch) p.catch(() => {}); }catch(e){} }
+      let p = null;
+      if(req){ try{ p = req.call(el); }catch(e){} }
+      if(p && p.then){ p.then(() => setTimeout(show, 120), show); setTimeout(show, 700); }
+      else show();
     },
     exitFullscreen(){
-      this.isFullscreen = false;
       const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
       const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      this.isFullscreen = false;
       if(fsEl && exit){ try{ const p = exit.call(document); if(p && p.catch) p.catch(() => {}); }catch(e){} }
+    },
+    // Where the small timer ring sits relative to the fullscreen ring (for the grow/shrink animation)
+    fsDelta(el){
+      const small = document.querySelector('.timer-ring'), big = el.querySelector('.fs-ring'), content = el.querySelector('.fs-content');
+      if(!small || !big || !content) return null;
+      const a = small.getBoundingClientRect(), b = big.getBoundingClientRect(), c = content.getBoundingClientRect();
+      if(!a.width || !b.width) return null;
+      content.style.transformOrigin = (b.left + b.width/2 - c.left) + 'px ' + (b.top + b.height/2 - c.top) + 'px';
+      const dx = (a.left + a.width/2) - (b.left + b.width/2), dy = (a.top + a.height/2) - (b.top + b.height/2);
+      return { content, from: 'translate3d(' + dx + 'px,' + dy + 'px,0) scale(' + (a.width / b.width) + ')' };
+    },
+    fsEnter(el, done){
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const d = reduce ? null : this.fsDelta(el);
+      const ease = 'cubic-bezier(.22,1,.36,1)';
+      const fade = el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: reduce ? 1 : 380, easing: 'ease-out' });
+      if(d) d.content.animate([{ transform: d.from }, { transform: 'none' }], { duration: 620, easing: ease });
+      fade.onfinish = done; fade.oncancel = done;
+    },
+    fsLeave(el, done){
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const d = reduce ? null : this.fsDelta(el);
+      if(d) d.content.animate([{ transform: 'none' }, { transform: d.from }], { duration: 420, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' });
+      const fade = el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: reduce ? 1 : 380, easing: 'ease-in', delay: reduce ? 0 : 60, fill: 'forwards' });
+      fade.onfinish = done; fade.oncancel = done;
     },
 
     // ===================== MODALS =====================
@@ -2197,7 +2240,7 @@ createApp({
 
     // NEW: keep fullscreen overlay in sync with browser fullscreen (Esc key etc.)
     this._onFsChange = () => {
-      if(!document.fullscreenElement && !document.webkitFullscreenElement){ this.isFullscreen = false; this.measurePill(); }
+      if(!document.fullscreenElement && !document.webkitFullscreenElement){ this._fsPending = false; this.isFullscreen = false; this.measurePill(); }
     };
     document.addEventListener('fullscreenchange', this._onFsChange);
     document.addEventListener('webkitfullscreenchange', this._onFsChange);
